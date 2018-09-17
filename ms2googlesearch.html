@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Google-Books-Search</title>
+<style>
+		body 
+		{
+			background-color: silver;		  
+		}
+		.image 
+		{
+			float: left;
+			margin-right: 10px;					   
+		}			
+</style>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" language="javascript">
+$(document).ready(function(){       		
+	$.getJSON("https://www.googleapis.com/books/v1/volumes?q=modern%20web", function(result){
+		for(var i = 0; i < result.items.length; i++)
+		{
+			$('#book').append
+			(			
+				  '<span class="image"><img src=' + result.items[i].volumeInfo.imageLinks.thumbnail + '></span>'	
+				+ '<p>Title: ' + result.items[i].volumeInfo.title + '</p>'
+				+ '<p>Subtitle: ' + result.items[i].volumeInfo.subtitle + '</p>'
+				+ '<p>Author(s): ' + result.items[i].volumeInfo.authors + '</p>'
+				+ '<p>Publisher: ' + result.items[i].volumeInfo.publisher + '</p>'
+				+ '<p>Published Date: ' + result.items[i].volumeInfo.publishedDate+ '</p>'
+				+ '<p>Description: ' + result.items[i].volumeInfo.description + '</p>'
+				+ '<p>' + result.items[i].volumeInfo.industryIdentifiers[0].type + ': ' + result.items[i].volumeInfo.industryIdentifiers[0].identifier + '</p>'
+				+ '<p>' + result.items[i].volumeInfo.industryIdentifiers[1].type + ': ' + result.items[i].volumeInfo.industryIdentifiers[1].identifier + '</p><br><br>'
+			);  
+		}                                                 
+	});           
+});
+</script>
+
+</head>
+
+<body>
+<h1><center>Google-Books-Search</center></h1>
+<div id="book"></div>
+</body>
+
+</html>

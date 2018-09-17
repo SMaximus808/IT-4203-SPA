@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Google-Books-Book</title>
+<style>
+		body 
+		{
+			background-color: silver;		  
+		}
+		.image 
+		{
+			float: left;
+			margin-right: 10px;					   
+		}	
+</style>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" language="javascript">
+
+$(document).ready(function(){       		
+	$.getJSON("https://www.googleapis.com/books/v1/volumes/Wfan6L9RGgYC", function(singleBook){
+		$('#book').append
+		(			
+			  '<span class="image"><img src=' + singleBook.volumeInfo.imageLinks.small+ '></span>'	
+			+ '<p>Title: ' + singleBook.volumeInfo.title + '</p>'
+			+ '<p>Subtitle: ' + singleBook.volumeInfo.subtitle + '</p>'
+			+ '<p>Author(s): ' + singleBook.volumeInfo.authors + '</p>'
+			+ '<p>Publisher: ' + singleBook.volumeInfo.publisher + '</p>'
+			+ '<p>Published Date: ' + singleBook.volumeInfo.publishedDate+ '</p><br>'
+			+ '<p>Description: ' + singleBook.volumeInfo.description + '</p><br>'
+			+ '<p>ISBN-10: ' + singleBook.volumeInfo.industryIdentifiers[0].identifier + '</p>'
+			+ '<p>ISBN-13: ' + singleBook.volumeInfo.industryIdentifiers[1].identifier + '</p>'
+		);                                                   
+	});           
+});
+
+
+</script>
+</head>
+<body>
+<h1><center>Google-Books-Book</center></h1>
+              
+<div id="book"></div>
+        
+</body>
+</html>
