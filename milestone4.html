@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<head>
+<title>Milestone 4</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.0/mustache.min.js"></script>
+	
+<style>
+body 
+{
+	text-align: center;
+	background-color:#DB7093;
+}
+
+.book 
+{
+	border: solid #c9d2ff;
+	border-width: 2px;
+	width: 25%;
+	margin: 5px;
+}
+
+.book:nth-child(even) 
+{
+	background-color:#FFC0CB;
+}
+
+.bookDetails 
+{
+	width: 90%;
+}
+
+#results 
+{
+	display: flex; 
+	flex-wrap: wrap;
+	float: left;
+	width: 60%;
+}
+
+#details 
+{
+	float: right;
+	width: 40%;		
+}
+
+#search, #Next, #Previous, #searchTerm, #shelf, #all, #home 
+{
+	padding: 3px 15px;
+}
+
+#shelf, #all 
+{
+	background-color:#FFC0CB;
+}
+
+#bookshelf 
+{
+	display: flex;
+	flex-wrap: wrap;
+	float: left;
+	width: 60%;
+}
+
+#all 
+{
+	display: none;
+}
+</style>
+		
+	<script id="bookTemp" type="text/template">
+		{{#items}}
+			<div class='book'>
+				<h2>{{volumeInfo.title}}</h2>
+				<img id='{{id}}' class='bookIcon' src='{{volumeInfo.imageLinks.smallThumbnail}}' width='100' />
+			</div>
+		{{/items}}
+	</script>
+
+	<script id="bookDetailTemp" type="text/template">
+		<div class='bookDetails'>
+			<h2>{{volumeInfo.title}}</h2>
+			<img src='{{volumeInfo.imageLinks.small}}' />
+			<br>
+			<p>Author: {{volumeInfo.authors}}</p>
+			<p>Publisher: {{volumeInfo.publisher}}</p>
+			<p>Publish Date: {{volumeInfo.publishedDate}}</p>
+			<p>Pages: {{volumeInfo.pageCount}}</p>
+			<p>Rating: {{volumeInfo.averageRating}} stars</p>
+			<div>{{{volumeInfo.description}}}</div>
+			<a href="{{volumeInfo.previewLink}}">View More</a>		
+		</div>
+	</script>
+
+	<script type="text/javascript">
+	$(document).ready(function () {
+		$("#details").hide();
+		$("#bookshelf").hide();
+		$("#history").hide();
+		$("#Previous").hide();
+		$("#Next").hide();
+		$("#views").hide();
+
+		$.getJSON("https://www.googleapis.com/books/v1/users/101304471593415574663/bookshelves/2/volumes", function (jsonData) {
+			$("#bookshelf").html();
+			var template = $('#bookTemp').html();
+			$("#bookshelf").html(Mustache.render(template, jsonData));
+		});
+
+		//initialize page count at zero
+		var number = 0;
+		
+		//allows you to also press enter 
+		$("#searchTerm").keypress(function(e) {
+			if (e.which === 13) {
+				$("#search").click();
+			}
+		});
+		
+		//displays data when searching
+		$("#search").click(function () {
+		//initialize page count at zero
+			number = 0;
+			$("#results").html();
+				$.getJSON("https://www.googleapis.com/books/v1/volumes/?q="+$("#searchTerm").val()+"&startIndex="+number+"&maxResults=10", function (jsonData) {
+					$("#history").show();
+					$("#Previous").show();
+					$("#Next").show();
+					$("#views").show();
+					$("#results").html();
+					var template = $('#bookTemp').html();
+					$("#results").html(Mustache.render(template, jsonData));
+				});
+			save($("#searchTerm").val());
+		});
+		
+		//click on icon to see more details
+		$("#results, #bookshelf").on('click', '.bookIcon', function() {
+			var bookid = $(this).attr("id");
+			$("#details").html();
+				$.getJSON("https://www.googleapis.com/books/v1/volumes/"+bookid, function (jsonData) {
+					$("#details").html("");
+					$("#details").show();
+					var template = $('#bookDetailTemp').html();
+					$("#details").html(Mustache.render(template, jsonData));
+				});
+		});
+		
+		//click Next to display more results
+		$("#Next").click(function () {
+			number = number+10;
+			//$("#results").prepend("<p id='loading'>Searching ...</p>");
+				$.getJSON("https://www.googleapis.com/books/v1/volumes/?q="+$("#searchTerm").val()+"&startIndex="+number+"&maxResults=10", function (jsonData) {
+					var template = $('#bookTemp').html();
+					$("#loading").html("");
+					$("#results").prepend(Mustache.render(template, jsonData));
+					$("#results").attr("data-layout","List");
+				});
+		});
+		
+		//click Previous to go back
+		$("#Previous").click(function () {
+			if(number > 0){
+			number = number-10;
+			//$("#results").prepend("<p id='loading'>Searching ...</p>");
+				$.getJSON("https://www.googleapis.com/books/v1/volumes/?q="+$("#searchTerm").val()+"&startIndex="+number+"&maxResults=10", function (jsonData) {
+					var template = $('#bookTemp').html();
+					$("#loading").html("");
+					$("#results").prepend(Mustache.render(template, jsonData));
+					$("#results").attr("data-layout","List");
+				});
+			}
+		});
+		
+		
+		$("#history").on('click', function (event) {
+			var term = event.target.textContent;
+			$("#searchTerm").val(term);
+			//initialize page count at zero
+			number = 0;
+			$("#results").html();
+				$.getJSON("https://www.googleapis.com/books/v1/volumes/?q="+$("#searchTerm").val()+"&startIndex="+number+"&maxResults=10", function (jsonData) {
+					$("#results").html("");
+					var template = $('#bookTemp').html();
+					$("#results").html(Mustache.render(template, jsonData));
+				});
+		});
+		
+		$("#btnGrid").click(function () {
+			$(".book").css("width", "25%");
+			$("#results", "#bookshelf").attr("data-layout","Grid");		
+		});
+		
+		$("#btnList").click(function () {
+			$(".book").css("width", "49%");
+			$("#results", "#bookshelf").attr("data-layout","List");
+		});
+		
+		$("#shelf").click(function () {
+			$("#bookshelf").show();
+			$("#results").hide();
+			$("#all").show();
+			$("#shelf").hide();
+		});
+		
+		$("#all").click(function () {
+			$("#results").show();
+			$("#bookshelf").hide();
+			$("#shelf").show();
+			$("#all").hide();	
+		});
+		
+		function save(term) {
+			if ($("#history").find('span:contains("' + term + '")').length != 0) {
+				return;
+			}
+			else
+				$("#history").append("<span class='term'><a href='#'>" + term + "</a></span> ");
+		}
+	});
+
+	</script>
+</head>
+<body>
+	<a href="index.html">Home</a>
+<br>
+	<h1>Milestone 4</h1>
+	<input type="text" id="searchTerm" autofocus placeholder="Enter Query Here">
+	<input type="button" id="search" value="Search">
+	<input type="button" id="shelf" value="My Bookshelf">
+	<input type="button" id="all" value="Book Search">
+<br>
+<br>
+	<input type="button" id="Previous" value="Previous">
+	<input type="button" id="Next" value="Next">
+<br>	
+	<p id="views"><a href="#" id='btnList'>List</a> | <a href="#" id='btnGrid'>Grid</a></p>
+	<div id="history">Recent History: </div>	
+	<div id="results" data-layout="List"></div>	
+	<div id="details"></div>	
+	<div id="bookshelf" data-layout="List"></div>
+</body>
+</html>
